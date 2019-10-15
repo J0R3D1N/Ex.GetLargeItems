@@ -664,7 +664,7 @@ Function New-ImpersonationService {
                 . http://poshcode.org/624
                 #>
             $Provider = New-Object Microsoft.CSharp.CSharpCodeProvider
-            [Void]$Provider.CreateCompiler()
+            $Provider.CreateCompiler()
             $Params = New-Object System.CodeDom.Compiler.CompilerParameters
             $Params.GenerateExecutable = $False
             $Params.GenerateInMemory = $True
