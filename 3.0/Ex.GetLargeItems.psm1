@@ -267,7 +267,7 @@ organization, this may be a long operation.
     }
 
     try {
-        $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
+        $ScriptPath = (Get-Location).Path
         $CurrentDateTime = Get-Date -Format yyyyMMdd_HHmmss
         $LogFile = "$ScriptPath\LargeItemChecks_ScriptLog_$CurrentDateTime.log"
     
@@ -612,32 +612,43 @@ Function New-ImpersonationService {
         TRY {
             If (-NOT [System.String]::IsNullOrEmpty($MBX.DisplayName)) { $Identity = $MBX.DisplayName }
             Write-Log -Type INFO -Text ("MAILBOX: {0} | Validating Installation of EWS Managed API" -f $Identity)
-            $EWSRegistryPath = Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Exchange\Web Services' | Sort-Object Name -Descending | Select-Object -First 1 -ExpandProperty Name
-            $EWSInstallDirectory = (Get-ItemProperty -Path Registry::$EWSRegistryPath).'Install Directory'
-            $EWSVersion = $EWSInstallDirectory.SubString(($EWSInstallDirectory.Length - 4), 3)
-            $EWSDLL = $EWSInstallDirectory + "Microsoft.Exchange.WebServices.dll"
+            $EWSRegistryPath = Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Exchange\Web Services' -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1 -ExpandProperty Name
+            If ($EWSRegistryPath) {
+                $EWSInstallDirectory = (Get-ItemProperty -Path Registry::$EWSRegistryPath).'Install Directory'
+                $EWSVersion = $EWSInstallDirectory.SubString(($EWSInstallDirectory.Length - 4), 3)
+                $EWSDLL = $EWSInstallDirectory + "Microsoft.Exchange.WebServices.dll"
 
-            If (Test-Path $EWSDLL) {
-                If ($EWSVersion -lt 2.0) {
+                If (Test-Path $EWSDLL) {
+                    If ($EWSVersion -lt 2.0) {
+                        $PSCmdlet.ThrowTerminatingError(
+                            [System.Management.Automation.ErrorRecord]::New(
+                                [System.ArgumentOutOfRangeException]::New("EWS Version is too old, Please install EWS Managed API 2.0 or later"),
+                                "EWSVersionOutOfDate",
+                                [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                $EWSVersion
+                            )
+                        )
+                    } Else {
+                        Write-Log -Type INFO -Text ("MAILBOX: {0} | EWS Managed API 2.0 or later is INSTALLED" -f $Identity)
+                        Import-Module $EWSDLL
+                    }
+                } Else {
                     $PSCmdlet.ThrowTerminatingError(
                         [System.Management.Automation.ErrorRecord]::New(
-                            [System.ArgumentOutOfRangeException]::New("EWS Version is too old, Please install EWS Managed API 2.0 or later"),
-                            "EWSVersionOutOfDate",
-                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                            $EWSVersion
+                            [System.IO.FileNotFoundException]::New("Unable to find EWS Managed API DLL"),
+                            "FileNotFound",
+                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                            $EWSDLL
                         )
                     )
-                } Else {
-                    Write-Log -Type INFO -Text ("MAILBOX: {0} | EWS Managed API 2.0 or later is INSTALLED" -f $Identity)
-                    Import-Module $EWSDLL
                 }
             } Else {
                 $PSCmdlet.ThrowTerminatingError(
                     [System.Management.Automation.ErrorRecord]::New(
-                        [System.IO.FileNotFoundException]::New("Unable to find EWS Managed API DLL"),
+                        [System.IO.FileNotFoundException]::New("EWS Managed API Registry Path Not Found"),
                         "FileNotFound",
                         [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                        $EWSDLL
+                        "HKLM:\SOFTWARE\Microsoft\Exchange\Web Services"
                     )
                 )
             }
@@ -653,7 +664,7 @@ Function New-ImpersonationService {
                 . http://poshcode.org/624
                 #>
             $Provider = New-Object Microsoft.CSharp.CSharpCodeProvider
-            $Provider.CreateCompiler()
+            [Void]$Provider.CreateCompiler()
             $Params = New-Object System.CodeDom.Compiler.CompilerParameters
             $Params.GenerateExecutable = $False
             $Params.GenerateInMemory = $True
