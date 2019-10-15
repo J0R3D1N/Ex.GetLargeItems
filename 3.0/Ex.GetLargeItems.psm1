@@ -587,7 +587,6 @@ Press any key to continue or [N] to cancel
     } Finally {
         $Stopwatch.Stop()
         $ElapsedTime = ("{0} Days, {1} Hours, {2} Minutes, {3} Seconds" -f $StopWatch.Elapsed.Days, $StopWatch.Elapsed.Hours, $StopWatch.Elapsed.Minutes, $StopWatch.Elapsed.Seconds)
-        Show-Menu -Title "Execution Ended!" -DisplayOnly -Style Mini -Color Green
         Write-Log -Type INFO -Text ("Large Items found: {0:N0}" -f $Script:AllLargeItems.Count) -Verbose
         Write-Log -Type INFO -Text ("Log file: {0}" -f $LogFile) -Verbose
         Write-Log -Type INFO -Text ("Process Completed | $ElapsedTime") -Verbose
