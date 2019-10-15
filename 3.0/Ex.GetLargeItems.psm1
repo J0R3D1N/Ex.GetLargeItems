@@ -915,7 +915,7 @@ Function New-LargeItemReport {
     )
     begin {
         $OutputFile = ("{0}\{1}_Large_Item_Violations.csv" -f $ScriptPath, (Get-Date -Format yyyyMMdd_HHmmss))
-        Show-Menu -Title "Creating the Large Item Report..." -DisplayOnly -Style Info -Color Green
+        Show-Menu -Title ("Creating the Large Item Report: {0}" -f $OutputFile) -DisplayOnly -Style Info -Color Green
         Write-Log -Type INFO -Text ("Exporting records to {0}" -f $OutputFile) -Verbose
     }
     process { $InputObject | Export-Csv $OutputFile -NoTypeInformation -Append }
