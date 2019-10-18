@@ -542,6 +542,10 @@ Press any key to continue or [N] to cancel
             } Else {
                 Write-Log -Type INFO -Text ("MAILBOX: {0} | Creating EWS Impersonation Service Object" -f $Mailbox.PrimarySMTPAddress)
                 Write-Debug "Creating EWS Service"
+                If ([System.String]::IsNullOrEmpty($Uri.AbsoluteUri)) { $EWSService = New-ImpersonationService -Identity $Mailbox.PrimarySMTPAddress -ImpersonatorAccountName $ServiceAccountName -ImpersonatorAccountPassword $ServicePassword -ExchangeVersion Exchange2013_SP1 }
+                Else { $EWSService = New-ImpersonationService -Identity $Mailbox.PrimarySMTPAddress -ImpersonatorAccountName $ServiceAccountName -ImpersonatorAccountPassword $ServicePassword -ExchangeVersion Exchange2013_SP1 -Uri $uri.AbsoluteUri }
+                
+                <# Commented out due to Exchange 2010 reaching end of support
                 Switch ($ExchangeVersion) {
                     "E14" {
                         If ([System.String]::IsNullOrEmpty($Uri.AbsoluteUri)) { $EWSService = New-ImpersonationService -Identity $Mailbox.PrimarySMTPAddress -ImpersonatorAccountName $ServiceAccountName -ImpersonatorAccountPassword $ServicePassword -ExchangeVersion Exchange2010_SP2 }
@@ -552,6 +556,7 @@ Press any key to continue or [N] to cancel
                         Else { $EWSService = New-ImpersonationService -Identity $Mailbox.PrimarySMTPAddress -ImpersonatorAccountName $ServiceAccountName -ImpersonatorAccountPassword $ServicePassword -ExchangeVersion Exchange2013_SP1 -Uri $uri.AbsoluteUri }
                     }
                 }
+                #>
 
                 Write-Log -Type INFO -Text ("MAILBOX: {0} | Attempting to get Mailbox Folders ({1})" -f $Mailbox.PrimarySMTPAddress, $MailboxLocation)
                 Write-Debug "Get Mailbox Folders"
