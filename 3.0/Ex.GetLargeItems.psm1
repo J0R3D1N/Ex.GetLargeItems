@@ -44,6 +44,10 @@
 . Jason Parker - Updated progress functionality
 .
 . 3.0 - NEW RELEASE
+. Jason Parker - Converted LargeItemScript from a PS1 to a Module
+. Jason Parker - Removed support for Exchange 2010
+. Jason Parker - Added better support for EWS API detection
+. Jason Parker - Fixed varibles to support module based format
 #>
 
 Function Get-MailboxItems {
@@ -668,7 +672,7 @@ Function New-ImpersonationService {
                 . http://poshcode.org/624
                 #>
             $Provider = New-Object Microsoft.CSharp.CSharpCodeProvider
-            $Provider.CreateCompiler()
+            [Void]$Provider.CreateCompiler()
             $Params = New-Object System.CodeDom.Compiler.CompilerParameters
             $Params.GenerateExecutable = $False
             $Params.GenerateInMemory = $True
